@@ -40,60 +40,14 @@ contract CurrentRate {
 
         /// This needs to be adjusted because of integer handling
 
-        // else {
-        //     midrate = uint(1) - (_weiRaised / _goal) * range + uint(1);
-        //     return midrate;
-        //     }
+        else {
+            midrate = _rate - ((_weiRaised * range) / _goal);
+            return midrate;
+            }
     } 
+    
     
     /// returns current rate
     
 }
 
-
-// require(initialRate >= finalRate);
-//         require(finalRate > 0);
-//         _initialRate = initialRate; 
-//         _finalRate = finalRate;
-
-//         /**
-//      * The base rate function is overridden to revert, since this crowdsale doesn't use it, and
-//      * all calls to it are a mistake.
-//      */
-//     function rate() public view returns (uint256) {
-//         revert("IncreasingPriceCrowdsale: rate() called");
-//     }
-
-//     /**
-//      * @return the initial rate of the crowdsale.
-//      */
-//     function initialRate() public view returns (uint256) {
-//         return _initialRate;
-//     }
-
-//     /**
-//      * @return the final rate of the crowdsale.
-//      */
-//     function finalRate() public view returns (uint256) {
-//         return _finalRate;
-//     }
-
-//     /**
-//      * @dev Returns the rate of tokens per wei at the present time.
-//      * Note that, as price _increases_ with time, the rate _decreases_.
-//      * @return The number of tokens a buyer gets per wei at a given time
-//      */
-//     function getCurrentRate() public view returns (uint256) {
-//         if (!isOpen()) {
-//             return 0;
-//         }
-//         // if (weiRaised() = 0){
-//         //     return _initialRate;
-//         // }
-
-//         // solhint-disable-next-line not-rely-on-time
-//         uint256 elapsedTime = block.timestamp.sub(openingTime());
-//         uint256 timeRange = closingTime().sub(openingTime());
-//         uint256 rateRange = _initialRate.sub(_finalRate);
-//         return _initialRate.sub(elapsedTime.mul(rateRange).div(timeRange));
-//     }
