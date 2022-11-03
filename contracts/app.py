@@ -22,7 +22,7 @@ st.cache(allow_output_mutation=True)
 def load_contract():
 
     # Load the contract ABI
-    with open(Path("C:\\Users\\steve\\Desktop\\unbrokenToken\\unbrokenToken\\contracts\\compiled\\ubtoken_abi.json")) as f:
+    with open(Path("./compiled/ubtoken_abi.json")) as f:
         ubtoken_abi = json.load(f)
 
     # Set the contract address (this is the address of the deployed contract)
