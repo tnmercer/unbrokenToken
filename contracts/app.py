@@ -1,4 +1,4 @@
-#Required libraries and depencencies 
+# Required libraries and depencencies 
 import os
 import json
 from web3 import Web3
@@ -7,9 +7,11 @@ from dotenv import load_dotenv
 import streamlit as st
 import time
 from PIL import Image
+
+# Load .env file
 load_dotenv()
 
-#Define and connect a WEB3 provider
+# Define and connect a WEB3 provider
 w3 = Web3(Web3.HTTPProvider(os.getenv("WEB3_PROVIDER_URI")))
 
 ################################################################################
@@ -21,7 +23,7 @@ w3 = Web3(Web3.HTTPProvider(os.getenv("WEB3_PROVIDER_URI")))
 st.cache(allow_output_mutation=True)
 def load_contract():
 
-    # Load the contract ABI
+    # Load the contract ABI from compiled folder
     with open(Path("./compiled/ubtoken_abi.json")) as f:
         ubtoken_abi = json.load(f)
 
@@ -49,79 +51,112 @@ contract = load_contract()
 #Tried uploading unbroken image.
 #unbroken_logo= Image.open('images\\ubtlogo.png')
 
+
+# Initial setup for page layout and variables
+
+# Set page layout to wide, allowing columns to properly fill the screen
+st.set_page_config(layout="wide")
+
+# Set font for project
+font="monospace"
+
+# Define accounts variable
+accounts = w3.eth.accounts
+
+# Define receipt to prevent column 2 errors
+receipt = ""
+
+
+
+
+# Setup for sidebar and header
+
+# Define a sidebar
 st.sidebar.selectbox("UBT Crowdsale", ["Learn more", "Buy Tokens"])
 
+# Use HTML and streamlit markdown to display the title, centered and stylable
+st.markdown("<h1 style='text-align: center;font-size: 80px;'>Unbroken Token</h1>", unsafe_allow_html=True)
 
+# Load video file
 video_file = open('ubtkenvid(2).mp4', 'rb')
 video_bytes = video_file.read()
 
+# Display video file
 st.video(video_bytes)
 
-font="monospace"
 
-st.title("Unbroken Token")
-accounts = w3.eth.accounts
+# Columns. Col1 for functionality. Col2 for receipts
+col1, col2 = st.columns(2, gap="large")
 
-address = st.selectbox("Select Owner Address", options=accounts)
-token_uri= st.text_input("Token URI")
+with col1:
+    # Functions
+    st.header("Functions")
+    address = st.selectbox("Select Owner Address", options=accounts)
+    token_uri = st.text_input("Token URI")
 
-# Fucntions
-if st.button("Register Account"):
+    if st.button("Register Account"):
 
-    tx_hash = contract.functions.registerAddress(address, token_uri).transact({'from': address, 'gas': 1000000})
+        tx_hash = contract.functions.registerAddress(address, token_uri).transact({'from': address, 'gas': 1000000})
+        receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        st.write("Transaction receipt mined")
+        receipt = (dict(receipt))
 
-    receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+    st.markdown("---")
 
-    st.write("Transaction receipt mined:")
+    token_id = int(st.text_input("Token ID (uint256)",value=0))
 
-    st.write(dict(receipt))
+    if st.button("Approve"):
 
-st.markdown("---")
+        tx_hash = contract.functions.approve(address, token_id).transact({'from': address, 'gas': 1000000})
+        receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        st.write("Transaction receipt mined")
+        receipt = (dict(receipt))
 
-token_id = int(st.text_input("Token ID (uint256)",value=0))
+    st.markdown("---")
 
-if st.button("Approve"):
+    boolean = bool(st.text_input("Boolean",value=True))
 
-    tx_hash = contract.functions.approve(address, token_id).transact({'from': address, 'gas': 1000000})
-    receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-    st.write("Transaction receipt mined:")
-    st.write(dict(receipt))
+    if st.button("Set Approval for All"):
 
-st.markdown("---")
+        tx_hash = contract.functions.setApprovalForAll(address, boolean).transact({'from': address, 'gas': 1000000})
+        receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        st.write("Transaction receipt mined")
+        receipt = (dict(receipt))
 
-boolean = bool(st.text_input("Boolean",value=True))
+    st.markdown("---")
 
-if st.button("Set Approval for All"):
+    address1 = st.selectbox("Select Owner Address 1", options=accounts)
+    address2 = st.selectbox("Select Owner Address 2 ", options=accounts)
+    token_id = int(st.text_input("Token ID (uint256) ",value=0))
 
-    tx_hash = contract.functions.setApprovalForAll(address, boolean).transact({'from': address, 'gas': 1000000})
-    receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-    st.write("Transaction receipt mined:")
-    st.write(dict(receipt))
+    if st.button("Safe Transfer From"):
 
-st.markdown("---")
+        tx_hash = contract.functions.safeTransferFrom(address1,address2,token_id).transact({'from': address, 'gas': 1000000})
+        receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        st.write("Transaction receipt mined")
+        receipt = (dict(receipt))
 
-address1 = st.selectbox("Select Owner Address 1", options=accounts)
-address2 = st.selectbox("Select Owner Address 2 ", options=accounts)
-token_id = int(st.text_input("Token ID (uint256) ",value=0))
+    # st.markdown("---")
 
-if st.button("Safe Transfer From"):
+    #boolean = bool(st.text_input("Boolean",value=True))
 
-    tx_hash = contract.functions.safeTransferFrom(address1,address2,token_id).transact({'from': address, 'gas': 1000000})
-    receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-    st.write("Transaction receipt mined:")
-    st.write(dict(receipt))
+    ##address2 = st.selectbox("Select Owner Address 2", options=accounts)
 
-st.markdown("---")
+    #if st.button("Approval For All"):
 
-#boolean = bool(st.text_input("Boolean",value=True))
+        #tx_hash = contract.functions.setApprovalForAll(address,boolean).transact({'from': address, 'gas': 1000000})
+        #receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        #st.write("Transaction receipt mined:")
+        #st.write(dict(receipt))
 
-##address2 = st.selectbox("Select Owner Address 2", options=accounts)
+    #st.markdown("---")
 
-#if st.button("Approval For All"):
+# Use column 2 to display header and text information alongside transaction receipts
+with col2:
+    st.header("Receipts")
 
-    #tx_hash = contract.functions.setApprovalForAll(address,boolean).transact({'from': address, 'gas': 1000000})
-    #receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-    #st.write("Transaction receipt mined:")
-    #st.write(dict(receipt))
-
-#st.markdown("---")
+    # Check if receipt is empty and display a message otherwise display receipt information
+    if receipt == "":
+        st.write("Receipts for transactions are displayed here")
+    else:
+        st.markdown(receipt)
