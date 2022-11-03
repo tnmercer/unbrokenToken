@@ -82,7 +82,7 @@ The following steps provide detailed instructions to prepare and use the project
     * Initial Supply - Initial supply of UBT
     * Goal - Crowdsale goal
 
-3. Populate the example.env file with the relevant project info. The RPC server can be found in Ganache and the deployed contract address can be found in Remix after deployment.
+3. Populate the example.env file with the relevant project info. The RPC server can be found in Ganache and the deployed contract address can be found in Remix after deployment. The deployer contract will provide both the addresses needed after being deployed.
 
 ```
     WEB3_PROVIDER_URI = "GANACHE RPC SERVER ADDRESS"
