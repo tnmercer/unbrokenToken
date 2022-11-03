@@ -59,7 +59,8 @@ A .env file is also required to run this program. An example .env file is provid
 
 ```
     WEB3_PROVIDER_URI = "GANACHE RPC SERVER ADDRESS"
-    SMART_CONTRACT_ADDRESS = "DEPLOYED UNBROKENTOKENCROWDSALEDEPLOYER ADDRESS"
+    SMART_CONTRACT_ADDRESS = "DEPLOYED UNBROKENTOKEN ADDRESS"
+    SMART_CONTRACT_ADDRESS2 = "DEPLOYED UNBROKENTOKENCROWDSALE ADDRESS"
 ```
 
 Afterwards, deleting the example from the filename will result in the file becoming a .env and being usable for this project.
@@ -85,7 +86,8 @@ The following steps provide detailed instructions to prepare and use the project
 
 ```
     WEB3_PROVIDER_URI = "GANACHE RPC SERVER ADDRESS"
-    SMART_CONTRACT_ADDRESS = "DEPLOYED UNBROKENTOKENCROWDSALEDEPLOYER ADDRESS"
+    SMART_CONTRACT_ADDRESS = "DEPLOYED UNBROKENTOKEN ADDRESS"
+    SMART_CONTRACT_ADDRESS2 = "DEPLOYED UNBROKENTOKENCROWDSALE ADDRESS"
 ```
 
 4. Delete the "example" from the example.env file to create a .env file for usage with the program.
