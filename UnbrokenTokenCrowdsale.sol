@@ -123,30 +123,37 @@ contract UnbrokenTokenCrowdsaleDeployer {
 contract PayoutInterest {
     using SafeMath for uint;
     address payable unbrokenWallet;
-    uint _divideRate = 0;
+    // uint _divideRate = 0;
+    address payable[] recipients;
 
     // on construction assign the wallet address of Unbroken Token business account (collecting and distributing eth)
     constructor (address payable wallet) public {
         unbrokenWallet = wallet;
         }
+    // / function setPayoutRate(uint divideRate) public returns (uint) {
+    //     require(msg.sender == unbrokenWallet, "Do not pass go, do not collect $200!");
+    //     _divideRate = divideRate;
+    //     return _divideRate;
+    // }
+
+    function addRecipient(address payable recipient) public {
+        require(msg.sender == unbrokenWallet, "Do not pass go, do not collect $200!");
+        recipients.push(recipient);
+    }
+
+    function viewRecipients() public view returns(address payable[] memory) {
+        return recipients;
+    }
 
     function getPayoutRate() public view returns(uint) {
-        return _divideRate;
+        return recipients.length;
     }
-
-    function setPayoutRate (uint divideRate) public returns (uint) {
-        require(msg.sender == unbrokenWallet, "Go straight to jail, do not collect $200!");
-        _divideRate = divideRate;
-        return _divideRate;
-    }
-
-    function payOut(address payable[] memory recipients) public payable {
+    function payOut() public payable {
         // REQUIRE OWNER = MSG.SENDER
-        require(msg.sender == unbrokenWallet, "Go straight to jail, do not collect $200!");
+        require(msg.sender == unbrokenWallet, "Do not pass go, do not collect $200!");
         // transfer percentage to recipient
         for (uint i = 0; i < recipients.length; i++){
-            recipients[i].transfer(msg.value.div(_divideRate));
+            recipients[i].transfer(msg.value.div(recipients.length));
         }
     }
-
 }
