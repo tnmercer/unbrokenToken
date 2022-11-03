@@ -10,10 +10,15 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v2.5
 
 // Have the UnbrokenTokenCrowdsale contract inherit the following OpenZeppelin:
 // * Crowdsale
-// * MintedCrowdsale
+// * MintedCrowdsale - to allow the crowdsale to mint tokens as purchased
+// * CappedCrowdsale - to set a limit on the number of tokens issued
+// * TimedCrowdsale - to close the crowdsale after set time
+// * RefundableCrowdsale - to refund all buyers if goal not met
+// * PostDeliveryCrowdsale - to delay delivery of tokens until crowdsale closed
+
 // UPDATED THE CONTRACT SIGNATURE TO ADD THE ABOVE INHERITANCE
-contract UnbrokenTokenCrowdsale is Crowdsale, MintedCrowdsale, CappedCrowdsale, TimedCrowdsale, RefundableCrowdsale { 
-    
+contract UnbrokenTokenCrowdsale is Crowdsale, MintedCrowdsale, CappedCrowdsale, TimedCrowdsale, RefundableCrowdsale, PostDeliveryCrowdsale { 
+    address payable _wallet; // crowdsale wallet to pass to the transfer deployer
     uint256 private _rate; // rate in TKNbits
     uint256 private _initialRate; // initial rate in TKNbits
     uint256 private _finalRate; // final rate in TKNbits
@@ -26,7 +31,6 @@ contract UnbrokenTokenCrowdsale is Crowdsale, MintedCrowdsale, CappedCrowdsale, 
         uint256 finalRate, // final rate in TKNbits
         address payable wallet, // sale beneficiary
         UnbrokenToken token, // the UnbrokenToken itself that the UnbrokenTokenCrowdsale will work with
-        //address movingRateAddress, // the movingRate contract that the crowdsale will work with
         uint256 goal, // the crowdsale goal
         uint open, // the crowdsale opening time
         uint close // the crowdsale closing time
@@ -35,50 +39,42 @@ contract UnbrokenTokenCrowdsale is Crowdsale, MintedCrowdsale, CappedCrowdsale, 
         CappedCrowdsale(goal)
         TimedCrowdsale(open, close)
         RefundableCrowdsale(goal)
+        PostDeliveryCrowdsale() 
     {
-        // constructor can stay empty
+        // assign variables for use in functions
         _rate = rate;
         _initialRate = initialRate;
         _finalRate = finalRate;
         _goal = goal;
+        _wallet = wallet;
     }
 
-    // override for buy function
+    // override for buy function to change rate
     function _getTokenAmount(uint256 weiAmount) internal view returns (uint256) {
-        uint256 currentRate = getCurrentRate(_initialRate, _finalRate, weiRaised(), _goal);
+        uint256 currentRate = getCurrentRate();
         return currentRate.mul(weiAmount);
     }
 
-    function getCurrentRate(uint256 initialRate, uint256 finalRate, uint256 weiRaised, uint256 goal) internal pure returns (uint256) {
+    // function to calculate current rate based on progress of crowdsale
+    function getCurrentRate() public view returns (uint256) {
+        //uint256 initialRate, uint256 finalRate, uint256 weiRaised, uint256 goal
         uint256 range;
         uint256 midrate;
 
         /// rate range
-        range = initialRate - finalRate;
-
-        /// if goal has been met, the rate is the final rate
-        // if (goalReached) {
-        //     return finalRate;
-        // }
+        range = _initialRate - _finalRate;     
         
         /// if weiRaised = 0, the initial rate should be used
-        if (weiRaised == 0) {
-            return initialRate;
+        if (weiRaised() == 0) {
+            return _initialRate;
         }
 
         /// otherwise calculate rate based on amount of goal raised
         else {
-            midrate = initialRate - ((weiRaised * range) / goal);
+            midrate = _initialRate - ((weiRaised() * range) / _goal);
             return midrate;
             }
-    } 
-
-    // function to finalise and deploy distribution contract 
-
-    //  function finalized() public view returns (bool) {
-    //     return _finalized;
-    }
-    
+    }      
 }
 
 
@@ -87,16 +83,16 @@ contract UnbrokenTokenCrowdsaleDeployer {
     address public unbrokenTokenAddress;
     // Create an `address public` variable called `unbrokenCrowdsaleAddress`.
     address public unbrokenCrowdsaleAddress;
-    //Create an 'address public' variable called 'movingRateAddress'
-    // address public movingRateAddress;
+    //Create an 'address public' variable called 'payoutInterestAddress'
+    address public payoutInterestAddress;
 
     // Add the constructor.
     constructor(
        string memory name,
        string memory symbol,
        address payable wallet,
-       uint initialSupply,
-       uint goal
+       uint256 initialSupply,
+       uint256 goal
     ) public {
         // Create a new instance of the UnbrokenToken contract.
         UnbrokenToken token = new UnbrokenToken(name, symbol, initialSupply);
@@ -104,18 +100,18 @@ contract UnbrokenTokenCrowdsaleDeployer {
         // Assign the token contract’s address to the `unbrokenTokenAddress` variable.
         unbrokenTokenAddress = address(token);
 
-        //Create a new instance of the MovingRate contract.
-        //MovingRate movingRate = new MovingRate(10, 1, 0, goal);
-
-        //Assign 'MovingRate' contract address to variable.
-        //movingRateAddress = address(movingRate);
-
         // Create a new instance of the `UnbrokenTokenCrowdsale` contract
-        UnbrokenTokenCrowdsale unbrokenCrowdsale = new UnbrokenTokenCrowdsale(10, 10, 1, wallet, token, goal, now, now + 120 minutes);
+        UnbrokenTokenCrowdsale unbrokenCrowdsale = new UnbrokenTokenCrowdsale(10, 10, 1, wallet, token, goal, now, now + 5 minutes);
             
         // Aassign the `UnbrokenTokenCrowdsale` contract’s address to the `unbrokenCrowdsaleAddress` variable.
         unbrokenCrowdsaleAddress = address(unbrokenCrowdsale);
 
+        // Create a new instance of the PayoutInterest contract.
+        PayoutInterest _payoutInterest = new PayoutInterest(wallet);
+
+        // Assign 'p' contract address to variable.
+        payoutInterestAddress = address(_payoutInterest);
+        
         // Set the `UnbrokenTokenCrowdsale` contract as a minter
         token.addMinter(unbrokenCrowdsaleAddress);
         
@@ -124,9 +120,33 @@ contract UnbrokenTokenCrowdsaleDeployer {
     }
 }
 
-contract DistributionTransfer {
-    // REQUIRE OWNER = MSG.SENDER???
+contract PayoutInterest {
+    using SafeMath for uint;
+    address payable unbrokenWallet;
+    uint _divideRate = 0;
 
-    // INSERT TRANSFER FUNCTIONALITY HERE
+    // on construction assign the wallet address of Unbroken Token business account (collecting and distributing eth)
+    constructor (address payable wallet) public {
+        unbrokenWallet = wallet;
+        }
+
+    function getPayoutRate() public view returns(uint) {
+        return _divideRate;
+    }
+
+    function setPayoutRate (uint divideRate) public returns (uint) {
+        require(msg.sender == unbrokenWallet, "Go straight to jail, do not collect $200!");
+        _divideRate = divideRate;
+        return _divideRate;
+    }
+
+    function payOut(address payable[] memory recipients) public payable {
+        // REQUIRE OWNER = MSG.SENDER
+        require(msg.sender == unbrokenWallet, "Go straight to jail, do not collect $200!");
+        // transfer percentage to recipient
+        for (uint i = 0; i < recipients.length; i++){
+            recipients[i].transfer(msg.value.div(_divideRate));
+        }
+    }
 
 }
