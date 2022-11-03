@@ -72,8 +72,15 @@ contract UnbrokenTokenCrowdsale is Crowdsale, MintedCrowdsale, CappedCrowdsale, 
             return midrate;
             }
     } 
+
+    // function to finalise and deploy distribution contract 
+
+    //  function finalized() public view returns (bool) {
+    //     return _finalized;
+    }
     
 }
+
 
 contract UnbrokenTokenCrowdsaleDeployer {
     // Create an `address public` variable called `unbrokenTokenAddress`.
@@ -115,4 +122,11 @@ contract UnbrokenTokenCrowdsaleDeployer {
         // Have the `UnbrokenTokenCrowdsaleDeployer` renounce its minter role.
         token.renounceMinter();
     }
+}
+
+contract DistributionTransfer {
+    // REQUIRE OWNER = MSG.SENDER???
+
+    // INSERT TRANSFER FUNCTIONALITY HERE
+
 }
