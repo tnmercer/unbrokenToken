@@ -1,4 +1,4 @@
-#Required libraries and depencencies 
+# Required libraries and depencencies 
 import os
 import json
 from web3 import Web3
@@ -11,17 +11,19 @@ from multiprocessing import Process
 import streamlit as st
 import signal
 
+# Load dotenv
 load_dotenv()
 
-#Define and connect a WEB3 provider
-w3 = Web3(Web3.HTTPProvider("HTTP://127.0.0.1:7545"))
+# Define and connect a WEB3 provider
+w3 = Web3(Web3.HTTPProvider(os.getenv("WEB3_PROVIDER_URI")))
 
+
+# Load contract 1 (Unbroken Token)
 st.cache(allow_output_mutation=True)
-
 def load_contract():
 
     # Load the contract ABI
-    with open(Path("C:\\Users\\steve\\Desktop\\unbrokenToken\\unbrokenToken\\contracts\\compiled\\ubtoken_abi.json")) as f:
+    with open(Path("./compiled/ubtoken_abi.json")) as f:
         ubtoken_abi = json.load(f)
 
     # Set the contract address (this is the address of the deployed contract)
@@ -35,13 +37,14 @@ def load_contract():
 
     return contract
 
-# Load the contract
 contract = load_contract()
 
+
+# Load contract 2 (Unbroken Token Crowdsale)
 def load_contract2():
 
     # Load the contract ABI
-    with open(Path("C:\\Users\\steve\\Desktop\\unbrokenToken\\unbrokenToken\\contracts\\compiled\\ubtoken_abi2.json")) as f:
+    with open(Path("./compiled/ubtoken_abi2.json")) as f:
         ubtoken_abi = json.load(f)
 
     # Set the contract address (this is the address of the deployed contract)
@@ -55,47 +58,41 @@ def load_contract2():
 
     return contract
 
-# Load the contract
 contract2 = load_contract2()
 
 ##################################################################################################################
 
-#Header
-st.title("Unbroken Token")
+# Initial page setup
+
+# Set page layout to wide, allowing columns to properly fill the screen
+st.set_page_config(layout="wide")
+
+# Set font for project
+font="monospace"
+
+# Define accounts variable
 accounts = w3.eth.accounts
 
-#Home page logo
+# Define receipt to prevent column 2 errors
+receipt = ""
+
+
+# Use HTML and streamlit markdown to display the title, centered and stylable
+st.markdown("<h1 style='text-align: center; color:green; font-size: 80px;'>Unbroken Token</h1>", unsafe_allow_html=True)
+
+# Load and display video
 video_file = open('ubtkenvid(2).mp4', 'rb')
 video_bytes = video_file.read()
 st.video(video_bytes)
-st.markdown("---")
 
-#Input user account address
-st.header("Owner Address")
-address = st.selectbox("Select Owner Address", options=accounts)
-st.markdown("---")
+# Columns. Col1 for main functions. Col2 for calls. Col3 for receipts
+col1, col2, col3 = st.columns(3)
 
+##############################################################
 
-##################################################################################################################
+# Sidebar: Unbroken Token Crowdsale Calls
 
-# Contract 2 UNBROKENTOKENCROWDSALE 
-
-
-st.header("Unbroken Crowdsale Deployer")
-
-st.subheader("Buy Tokens")
-address2 = st.selectbox("Select Recepient Address", options=accounts[1:])
-amount = int(st.text_input("Input wei amount to buy", value=1))
-if st.button("Buy Tokens"):
-    tx_hash = contract2.functions.buyTokens(address2).transact({'from': address, 'gas': 1000000, 'value':amount})
-    receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-    st.write("Transaction Processed:")
-    st.write(dict(receipt))
-    st.balloons()
-st.markdown("---")
-
-st.sidebar.header("Unbroken Crowdsale Contract")
-st.sidebar.subheader("Calls")
+st.sidebar.header("Unbroken Token Crowdsale Contract Calls")
 
 if st.sidebar.button("Cap"):
     cap = contract2.functions.cap().call()
@@ -151,37 +148,68 @@ if st.sidebar.button("Wei Raised"):
 
 ##############################################################
 
-# Contract 1
-st.header("Unbroken Crowdsale Token Contract")
+# Column 1: Main Functions
 
-st.subheader("Calls")
+with col1:
+    st.header("Main Functions")
 
-if st.button("Balance Of"):
-    balanceOf = contract.functions.balanceOf(address2).call()
-    st.write(f"{balanceOf}")
-st.markdown("---")
+    st.subheader("Owner Address")
+    address = st.selectbox("Select Owner Address", options=accounts)
 
-if st.button("Decimals"):
-    decimals = contract.functions.decimals().call()
-    st.write(f"{decimals}")
-st.markdown("---")
+    st.markdown("---")
 
-if st.button("Name"):
-    name = contract.functions.name().call()
-    st.write(f"{name}")
-st.markdown("---")
+    st.subheader("Buy Tokens")
+    address2 = st.selectbox("Select Recepient Address", options=accounts[1:])
+    amount = int(st.text_input("Input wei amount to buy", value=1))
+    if st.button("Buy Tokens"):
+        tx_hash = contract2.functions.buyTokens(address2).transact({'from': address, 'gas': 1000000, 'value':amount})
+        receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        st.write("Transaction Processed")
+        receipt = (dict(receipt))
+        st.balloons()
 
-if st.button("Is Minter"):
-    isMinter = contract.functions.isMinter(address).call()
-    st.write(f"{isMinter}")
-st.markdown("---")
+##############################################################
 
-if st.button("Symbol"):
-    symbol = contract.functions.symbol().call()
-    st.write(f"{symbol}")
-st.markdown("---")
+# Column 2: Unbroken Token Calls
+with col2:
+    st.header("Unbroken Token Contract Calls")
 
-if st.button("Total Supply"):
-    total_supply = contract.functions.totalSupply().call()
-    st.write(f"{total_supply}")
-st.markdown("---")
+    if st.button("Balance Of"):
+        balanceOf = contract.functions.balanceOf(address2).call()
+        st.write(f"{balanceOf}")
+    st.markdown("---")
+
+    if st.button("Decimals"):
+        decimals = contract.functions.decimals().call()
+        st.write(f"{decimals}")
+    st.markdown("---")
+
+    if st.button("Name"):
+        name = contract.functions.name().call()
+        st.write(f"{name}")
+    st.markdown("---")
+
+    if st.button("Is Minter"):
+        isMinter = contract.functions.isMinter(address).call()
+        st.write(f"{isMinter}")
+    st.markdown("---")
+
+    if st.button("Symbol"):
+        symbol = contract.functions.symbol().call()
+        st.write(f"{symbol}")
+    st.markdown("---")
+
+    if st.button("Total Supply"):
+        total_supply = contract.functions.totalSupply().call()
+        st.write(f"{total_supply}")
+
+##############################################################
+# Column 3: Receipts
+with col3:
+    st.header("Receipts")
+
+    # Check if receipt is empty and display a message otherwise display receipt information
+    if receipt == "":
+        st.write("Receipts for transactions are displayed here")
+    else:
+        st.markdown(receipt)
