@@ -155,5 +155,6 @@ contract PayoutInterest {
         for (uint i = 0; i < recipients.length; i++){
             recipients[i].transfer(msg.value.div(recipients.length));
         }
+        delete recipients;
     }
 }
