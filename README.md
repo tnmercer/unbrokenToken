@@ -2,6 +2,10 @@
 
 Unbroken Token (UBT) is an ERC-20 token created with Solidity and Remix and tested using Ganache. The purpose of this project is to allow users to purchase a bond-like token that pays out on a monthly basis. The funds raised from the crowdsale are collected into a single wallet and staked with the earnings paid out to UBT holders.
 
+---
+
+## Summary
+
 New token creation 
 * Solidity & remix
 * Hardcode initial supply, name and code
@@ -96,7 +100,7 @@ The following steps provide detailed instructions to prepare and use the project
 
     `streamlit run app.py`
 
-6. 
+6.  Once the app has launched, there will be a sidebar and 3 columns. The sidebar is dedicated to contract calls relating to the crowdsale while the body contains all the necessary user functionality. Column 1 allows selecting the owner address as well as purchasing tokens, which will print a receipt in the 3rd column. The 2nd (middle) column contains contract calls for the token itself and will print the results just below the button.
 
 ---
 
