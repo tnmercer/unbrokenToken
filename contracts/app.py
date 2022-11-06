@@ -27,7 +27,7 @@ def load_contract():
         ubtoken_abi = json.load(f)
 
     # Set the contract address (this is the address of the deployed contract)
-    contract_address = os.getenv("SMART_CONTRACT_ADDRESS") # UNBROKENTOKEN 
+    contract_address = os.getenv("SMART_CONTRACT_ADDRESS_UBT") # UNBROKENTOKEN 
 
     # Get the contract
     contract = w3.eth.contract(
@@ -48,7 +48,7 @@ def load_contract2():
         ubtoken_abi = json.load(f)
 
     # Set the contract address (this is the address of the deployed contract)
-    contract_address = os.getenv("SMART_CONTRACT_ADDRESS2") # UNBROKENTOKENCROWDSALE 
+    contract_address = os.getenv("SMART_CONTRACT_ADDRESS_UBTCS") # UNBROKENTOKENCROWDSALE 
 
     # Get the contract
     contract = w3.eth.contract(
