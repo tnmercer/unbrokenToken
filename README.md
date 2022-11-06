@@ -1,33 +1,22 @@
 # Unbroken Token (UBT)
 
-Unbroken Token (UBT) is an ERC-20 token created with Solidity and Remix and tested using Ganache. The purpose of this project is to allow users to purchase a bond-like token that pays out on a monthly basis. The funds raised from the crowdsale are collected into a single wallet and staked with the earnings paid out to UBT holders.
+Unbroken Token (UBT) is an ERC-20 token created with Solidity on Remix IDE and tested using Ganache and MetaMask. 
 
----
+Implementation is through Streamlit.
 
-## Summary
+The purpose of this token is to allow users to purchase a bond-like token that maintains value and pays out earnings on a monthly basis. 
 
-New token creation 
-* Solidity & remix
-* Hardcode initial supply, name and code
+The funds raised from the crowdsale (and any future purchases) are collected into a single wallet and staked. The earnings from staking are pooled and paid out to random UBT token holders.
 
-ICO
-* Explore different launch strategies
-    * Launch price graduates by batch
-    * Launch price graduates by time
+The crowdsale is:
+* Mintable
+* Capped
+* Timed
+* Refundable
+* Tokens delivered post crowdsale close
+* Graduated token rate based on progress of goal reached
 
-Streamlit App
-* Countdown? 
-* Pool size display? 
-* Purchase and sale functions
-* Details of ICO and strategy status, e.g. "50,000 coins left at X eth, the next price will be Y" (or whichever strategy is used)
-
-Basis of Token - The gambling game
-* Strategy similar to UK premium bonds (but much riskier!)
-    * purchase a token (acts like an ticket) with eth
-    * receive a token of UBT
-    * eth collected in a central account and staked 
-    * earnings from staking paid into central account
-    * each month (day/week?) the earnings in central account are paid out to random 5% (+-) of UBT token holders
+The payout contract is manageable only by the UBT business account.
 
 ---
 
@@ -86,6 +75,11 @@ The following steps provide detailed instructions to prepare and use the project
     * Initial Supply - Initial supply of UBT
     * Goal - Crowdsale goal
 
+4. The deployer contract will deploy 3 contracts:
+    * UnbrokenToken is the token
+    * UnbrokenTokenCrowdsale is the crowdsale
+    * PayoutInterest manages the earnings payouts each month
+
 3. Populate the example.env file with the relevant project info. The RPC server can be found in Ganache and the deployed contract address can be found in Remix after deployment. The deployer contract will provide both the addresses needed after being deployed.
 
 ```
@@ -101,6 +95,15 @@ The following steps provide detailed instructions to prepare and use the project
     `streamlit run app.py`
 
 6.  Once the app has launched, there will be a sidebar and 3 columns. The sidebar is dedicated to contract calls relating to the crowdsale while the body contains all the necessary user functionality. Column 1 allows selecting the owner address as well as purchasing tokens, which will print a receipt in the 3rd column. The 2nd (middle) column contains contract calls for the token itself and will print the results just below the button.
+
+---
+
+## Future Dev
+
+* Create contract to manage the selection of token holders for monthly payout - increased transparency
+* Use API to blockchain for token holder accounts
+* Further develop streamlit to run all functionality
+* Run node to stake eth directly without third party provider
 
 ---
 
